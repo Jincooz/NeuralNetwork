@@ -10,12 +10,11 @@ namespace NeuralNetwork
         public Vector? InputLayer { get => _networkData.InputLayer; set => _networkData.InputLayer = value; }
         public Vector? OutputLayer { get => _networkData.OutputLayer; }
         public List<Matrix> WeightsMatrices { set => _networkData.WeightsMatrices = value; }
-        public TrainingData TrainingData { get => _networkTraining.TrainingData; set => _networkTraining.TrainingData = value; }
+        internal NeuralNetworkData NeuralNetworkData => _networkData;
         public NeuralNetwork(int[] amountOfNodes, ActivationFunction? activationFunctionStrategy = null, NetworkTraining? networkTrainingStrategy = null)
         {
             _networkData = new NeuralNetworkData(amountOfNodes);
             _networkData.ActivationFunction = ActivationFunctionStrategy.Logistic;
-            _networkTraining = NetworkTrainingStrategy.Backpropagation;
             if (activationFunctionStrategy != null)
                 _networkData.ActivationFunction = activationFunctionStrategy;
             if (networkTrainingStrategy != null)
@@ -27,14 +26,14 @@ namespace NeuralNetwork
             _networkData.ActivationFunction = activationFunctionStrategy;
             return this;
         }
-        public NeuralNetwork SetTrainingStrategy(NetworkTraining networkTrainingStrategy)
-        {
-            _networkTraining = networkTrainingStrategy.SetDataAboutNeuralNetwork(ref _networkData);
-            return this;
-        }
         public Vector? ActivateNeuralNetwork(double[] inputLayer)
         {
             _networkData.InputLayer = Vector.Build.DenseOfArray(inputLayer);
+            return ActivateNeuralNetwork();
+        }
+        internal Vector? ActivateNeuralNetwork(Vector? input)
+        {
+            _networkData.InputLayer = input;
             return ActivateNeuralNetwork();
         }
         public Vector? ActivateNeuralNetwork()
@@ -49,10 +48,6 @@ namespace NeuralNetwork
             }
             _networkData.OutputLayer = _networkData.Layers[_networkData.Layers.Count - 1];
             return _networkData.OutputLayer;
-        }
-        public void TrainNeuralNetwork()
-        {
-            _networkTraining.Train();
         }
     }
 }

@@ -10,3 +10,15 @@ C:\Users\Jincooz\Documents\repos\Libs\NeuralNetwork\NeuralNetwork\obj\Debug\net6
 C:\Users\Jincooz\Documents\repos\Libs\NeuralNetwork\NeuralNetwork\obj\Debug\net6.0\refint\NeuralNetwork.dll
 C:\Users\Jincooz\Documents\repos\Libs\NeuralNetwork\NeuralNetwork\obj\Debug\net6.0\NeuralNetwork.pdb
 C:\Users\Jincooz\Documents\repos\Libs\NeuralNetwork\NeuralNetwork\obj\Debug\net6.0\ref\NeuralNetwork.dll
+C:\Users\Jincooz\Documents\repos\NeuralNetwork\NeuralNetwork\bin\Debug\net6.0\NeuralNetwork.deps.json
+C:\Users\Jincooz\Documents\repos\NeuralNetwork\NeuralNetwork\bin\Debug\net6.0\NeuralNetwork.dll
+C:\Users\Jincooz\Documents\repos\NeuralNetwork\NeuralNetwork\bin\Debug\net6.0\NeuralNetwork.pdb
+C:\Users\Jincooz\Documents\repos\NeuralNetwork\NeuralNetwork\obj\Debug\net6.0\NeuralNetwork.csproj.AssemblyReference.cache
+C:\Users\Jincooz\Documents\repos\NeuralNetwork\NeuralNetwork\obj\Debug\net6.0\NeuralNetwork.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Jincooz\Documents\repos\NeuralNetwork\NeuralNetwork\obj\Debug\net6.0\NeuralNetwork.AssemblyInfoInputs.cache
+C:\Users\Jincooz\Documents\repos\NeuralNetwork\NeuralNetwork\obj\Debug\net6.0\NeuralNetwork.AssemblyInfo.cs
+C:\Users\Jincooz\Documents\repos\NeuralNetwork\NeuralNetwork\obj\Debug\net6.0\NeuralNetwork.csproj.CoreCompileInputs.cache
+C:\Users\Jincooz\Documents\repos\NeuralNetwork\NeuralNetwork\obj\Debug\net6.0\NeuralNetwork.dll
+C:\Users\Jincooz\Documents\repos\NeuralNetwork\NeuralNetwork\obj\Debug\net6.0\refint\NeuralNetwork.dll
+C:\Users\Jincooz\Documents\repos\NeuralNetwork\NeuralNetwork\obj\Debug\net6.0\NeuralNetwork.pdb
+C:\Users\Jincooz\Documents\repos\NeuralNetwork\NeuralNetwork\obj\Debug\net6.0\ref\NeuralNetwork.dll

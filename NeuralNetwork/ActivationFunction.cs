@@ -9,10 +9,10 @@ namespace NeuralNetwork
     }
     public readonly struct ActivationFunctionStrategy
     {
-        public static ActivationFunctionIndentity Indentity { get; }
-        public static ActivationFunctionBinaryStep BinaryStep { get; }
-        public static ActivationFunctionLogistic Logistic { get; }
-        public static ActivationFunctionTanh Tanh { get; }
+        public static ActivationFunctionIndentity Indentity { get; } = new ActivationFunctionIndentity();
+        public static ActivationFunctionBinaryStep BinaryStep { get; } = new ActivationFunctionBinaryStep();
+        public static ActivationFunctionLogistic Logistic { get; } = new ActivationFunctionLogistic();
+        public static ActivationFunctionTanh Tanh { get; } = new ActivationFunctionTanh();
     }
     public class ActivationFunctionIndentity : ActivationFunction
     {
