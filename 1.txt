@@ -1,0 +1,280 @@
+using Numerics = MathNet.Numerics;
+using Vector = MathNet.Numerics.LinearAlgebra.Vector<double>;
+using Matrix = MathNet.Numerics.LinearAlgebra.Matrix<double>;
+namespace NeuralNetwork
+{
+    class TrainingData
+    {
+        private readonly int _inputNodesAmount, _outputNodesAmount;
+        private readonly int _amountOfRecordsInDataset;
+        private readonly List<Vector[]> _data;
+        private int _amountOfData;
+        private List<List<Vector[]>> _datasets;
+        private int _amountOFDatasets;
+        public int AmountOfRecordsInDataset { get { return _amountOfRecordsInDataset; } }
+        public List<List<Vector[]>> DataSets { get { return _datasets; } }
+        public int CountDatasets { get { return _amountOFDatasets; } }
+        public TrainingData(Matrix trainingData, int groupBy, int inputNodesAmount, int outputNodesAmount)
+        {
+            _amountOfRecordsInDataset = groupBy;
+            _inputNodesAmount = inputNodesAmount;
+            _outputNodesAmount = outputNodesAmount;
+            _amountOfData = 0;
+            _amountOFDatasets = 0;
+            _data = new List<Vector[]>();
+            AddData(trainingData);
+        }
+        public void AddData(Matrix newTrainingData)
+        {
+            for (int i = 0; i < newTrainingData.RowCount; i++)
+            {
+                Vector[] newRecord = new Vector[2];
+                newRecord[0] = Vector.Build.Dense(_inputNodesAmount, 0);
+                newRecord[1] = Vector.Build.Dense(_outputNodesAmount, 0);
+                for (int j = 0; j < _inputNodesAmount + _outputNodesAmount; j++)
+                {
+                    if (j < _inputNodesAmount)
+                        newRecord[0][j] = newTrainingData[i, j];
+                    else
+                        newRecord[1][j - _inputNodesAmount] = newTrainingData[i, j];
+                }
+                _data.Add(newRecord);
+                _amountOfData++;
+            }
+            DivideDataInDatasets();
+        }
+        private void DivideDataInDatasets()
+        {
+            _datasets = new List<List<Vector[]>>();
+            for (int i = 0; i < _amountOfData / _amountOfRecordsInDataset; i++)
+            {
+                List<Vector[]> newDataset = new List<Vector[]>();
+                for (int j = 0; j < _amountOfRecordsInDataset; j++)
+                {
+                    newDataset.Add(_data[i * _amountOfRecordsInDataset + j]);
+                }
+                _datasets.Add(newDataset);
+                _amountOFDatasets++;
+            }
+        }
+    }
+    public class ActivationFunction
+    {
+        private Func<Vector, Vector> _activationFunction;
+        private Func<Vector, Vector> _dActivationFunction;
+        public Func<Vector, Vector> Activation { get { return _activationFunction; } }
+        public Func<Vector, Vector> ActivationDerivative { get { return _dActivationFunction; } }
+        ActivationFunction() : this("Sigmoid") { }
+        ActivationFunction(string nameOfMethod)
+        {
+            switch (nameOfMethod)
+            {
+                case "Sigmoid":
+                {
+                    _activationFunction = value =>
+                    {
+                        for (int i = 0; i < value.Count; i++)
+                        {
+                            value[i] = 1 / (1 + Math.Exp(-value[i]));
+                        }
+                        return value;
+                    };
+                    _dActivationFunction = value =>
+                    {
+                        for (int i = 0; i < value.Count; i++)
+                        {
+                            value[i] = (1 / (1 + Math.Exp(-value[i]))) * (1 - 1 / (1 + Math.Exp(-value[i])));
+                        }
+                        return value;
+                    };
+                    break;
+                }
+                case "No Activation Function":
+                {
+                        _activationFunction = value => value;
+                        _dActivationFunction = value => Vector.Build.Dense(value.Count, 1);
+                        break;
+                }
+                default:
+                {
+
+                    break;
+                }
+            }
+        }
+        ActivationFunction(Func<Vector,Vector> activationFunction, Func<Vector,Vector> dActivationFunction)
+        {
+            _activationFunction = activationFunction;
+            _dActivationFunction = dActivationFunction;
+        }
+    }
+    public class NeuralNetwork
+    {
+        private TrainingData _trainingData;
+        private readonly List<int>? _amountOfNodes;
+        private List<Matrix> _weightMatrices = new List<Matrix>();
+        private List<Vector> _biases = new List<Vector>();
+        private List<Vector> _layers = new List<Vector>();
+        private Vector? _inputLayer;
+        private Vector? _outputLayer;
+        public double diff;
+        public Vector? InputLayer { get { return _inputLayer; } set { _inputLayer = value; } }
+        public Vector? OutputLayer { get { return _outputLayer; } }
+        private Matrix XavierWeightInitialization(int numberOfNeronsInPreviusLayer, int numberOfNeronsInThisLayer)
+        {
+            //uniform probability distribution in (-1/sqrt(n),1/sqrt(n)), where n - amount of neuron in previuse layer
+            Random rand = new Random(DateTime.Now.Second);
+            double lower = -(1.0 / Math.Sqrt(numberOfNeronsInPreviusLayer)), upper = (1.0 / Math.Sqrt(numberOfNeronsInPreviusLayer));
+            var matrix = Matrix.Build.Dense(numberOfNeronsInThisLayer, numberOfNeronsInPreviusLayer, 0);
+            for (int i = 0; i < matrix.RowCount; i++)
+            {
+                for (int j = 0; j < matrix.ColumnCount; j++)
+                {
+                    matrix[i, j] = lower + rand.NextDouble() * (upper - lower);
+                }
+            }
+            return matrix;
+        }
+        public NeuralNetwork(List<int> amountOfNodes)
+        {
+            Clear();
+            _amountOfNodes = amountOfNodes;
+            _inputLayer = Vector.Build.Dense(amountOfNodes[0], 0.0);
+            _outputLayer = Vector.Build.Dense(amountOfNodes[amountOfNodes.Count - 1], 0.0);
+            for (int i = 0; i < amountOfNodes.Count; i++)
+            {
+                _layers.Add(Vector.Build.Dense(amountOfNodes[i], 0.0));
+                if (i != 0)
+                {
+                    _weightMatrices.Add(XavierWeightInitialization(numberOfNeronsInPreviusLayer: amountOfNodes[i - 1], numberOfNeronsInThisLayer: amountOfNodes[i]));
+                    _biases.Add(Vector.Build.Dense(amountOfNodes[i], 0));
+                }
+            }
+        }
+        public NeuralNetwork(int[] amountOfNodes) : this(new List<int>(amountOfNodes)) { }
+        private NeuralNetwork(List<int> amountOfNodes, List<Matrix> weightMatrices) : this(amountOfNodes)
+        {
+            _weightMatrices = weightMatrices;
+        }
+        public void Clear()
+        {
+            _weightMatrices = new List<Matrix>();
+            _layers = new List<Vector>();
+            _biases = new List<Vector>();
+            _inputLayer = null;
+            _outputLayer = null;
+        }
+        public Vector ActivationFunction(Vector value)
+        {
+            //sigmoid
+            for (int i = 0; i < value.Count; i++)
+            {
+                value[i] = 1 / (1 + Math.Exp(-value[i]));
+            }
+            return value;
+        }
+        private Vector ActivationFunctionDerivative(Vector value)
+        {
+            //sigmoid*(1-sigmoid)
+            for (int i = 0; i < value.Count; i++)
+            {
+                value[i] = (1 / (1 + Math.Exp(-value[i]))) * (1 - 1 / (1 + Math.Exp(-value[i])));
+            }
+            return value;
+        }
+        public Vector? ActivateNeuralNetwork(Vector inputLayer)
+        {
+            _inputLayer = inputLayer;
+            return ActivateNeuralNetwork();
+        }
+        public Vector? ActivateNeuralNetwork(double[] inputLayer)
+        {
+            _inputLayer = Vector.Build.DenseOfArray(inputLayer);
+            return ActivateNeuralNetwork();
+        }
+        public Vector? ActivateNeuralNetwork()
+        {
+            if (_inputLayer == null)
+                return null;
+            _layers[0] = _inputLayer;
+            for (int i = 0; i < _layers.Count - 1; i++)
+            {
+                Vector value = _weightMatrices[i] * _layers[i] + _biases[i];
+                _layers[i + 1] = ActivationFunction(value);
+            }
+            _outputLayer = _layers[_layers.Count - 1];
+            return _outputLayer;
+        }
+        private void SetTrainingData(Matrix trainingData, int groupBy = 10)
+        {
+            _trainingData = new TrainingData(trainingData, groupBy, inputNodesAmount: _amountOfNodes[0], outputNodesAmount: _amountOfNodes[^1]);
+        }
+        public void AddTrainingData(Matrix trainingData, int groupBy = 10)
+        {
+            if (trainingData.ColumnCount != _amountOfNodes[0] + _amountOfNodes[^1])
+            {//list size = (n+m)*amount of data
+                //TODO Try do this error better
+                throw new InvalidOperationException("Training data don`t math NeuralNetwork");
+            }
+            if (_trainingData == null)
+            {
+                SetTrainingData(trainingData, groupBy);
+                return;
+            }
+            _trainingData.AddData(trainingData);
+        }
+        public void TrainNeuralNetwork()
+        {
+            for (int i = 0; i < _trainingData.CountDatasets; i++)
+            {
+                //count mean of Gradients
+                List<Matrix> gradientWeights = new List<Matrix>();
+                //same shape as _weightMatrices
+                List<Vector> gradientBiases = new List<Vector>();
+                //same shape as _biases
+                for (int j = 1; j < _amountOfNodes.Count; j++)
+                {
+                    gradientWeights.Add(Matrix.Build.Dense(_amountOfNodes[j], _amountOfNodes[j - 1], 0));
+                    gradientBiases.Add(Vector.Build.Dense(_amountOfNodes[j], 0));
+                }
+                List<Vector[]> dataset = _trainingData.DataSets[i];
+                for (int j = 0; j < _trainingData.AmountOfRecordsInDataset; j++)
+                {
+                    var input = dataset[j][0];
+                    var desireOutput = dataset[j][1];
+                    var networkOutput = ActivateNeuralNetwork(input);
+                    var diference = 2 * (networkOutput - desireOutput);
+                    diff = (diference.DotProduct(diference) / 4);
+                    //Console.WriteLine();
+                    for (int k = gradientWeights.Count - 1; k >= 0; k--)
+                    {
+                        //double dCdz = 2 * diference * ActivationFunctionDerivative((_weightMatrices[k] * _layers[k] + _biases[k])[]);
+                        var dCda = Matrix.Build.DiagonalOfDiagonalVector(diference);
+                        var dadz = Matrix.Build.DiagonalOfDiagonalVector(ActivationFunctionDerivative(_weightMatrices[k] * _layers[k] + _biases[k]));
+                        var dzdw = Matrix.Build.Dense(0, gradientWeights[k].ColumnCount, 0);
+                        for (int h = 0; h < diference.Count; h++)
+                        {
+                            dzdw = dzdw.InsertRow(h, _layers[k]);
+                        }
+                        gradientBiases[k] += (dCda * dadz).Diagonal();
+                        gradientWeights[k] += dCda * dadz * dzdw;
+                        diference = Vector.Build.Dense(_layers[k].Count, 0);
+                        for (int h = 0; h < _layers[k].Count; h++)
+                        {
+                            diference[h] = (dadz * dCda * _weightMatrices[k]).Column(h).Sum();
+                        }
+                    }
+                }
+                //TODO add -gradient
+                double sum = 0;
+                for (int j = 0; j < gradientWeights.Count; j++)
+                {
+                    _weightMatrices[j] -= gradientWeights[j] / _trainingData.AmountOfRecordsInDataset;
+                    _biases[j] -= gradientBiases[j] / _trainingData.AmountOfRecordsInDataset;
+                    sum += _weightMatrices[j].RowSums().Sum() + _biases[j].Sum();
+                }
+                //Console.WriteLine("Gradient: " + sum.ToString());
+            }
+        }
+    }
+}
