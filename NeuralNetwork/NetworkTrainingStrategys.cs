@@ -61,7 +61,6 @@ namespace NeuralNetwork
                 {
                     neuralNetwork.NeuralNetworkData.WeightsMatrices[j] -= gradientWeights[j] / trainingData.AmountOfRecordsInDataset;
                     neuralNetwork.NeuralNetworkData.Biases[j] -= gradientBiases[j] / trainingData.AmountOfRecordsInDataset;
-                    sum += neuralNetwork.NeuralNetworkData.WeightsMatrices[j].RowSums().Sum() + neuralNetwork.NeuralNetworkData.Biases[j].Sum();
                 }
                 //Console.WriteLine("Gradient: " + sum.ToString());
             }

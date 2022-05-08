@@ -10,23 +10,19 @@ namespace NeuralNetwork
     {
         private TrainingData _trainingData;
         private NeuralNetwork _neuralNetwork;
-        private NetworkTrainingMethod _trainingMethod;
         public NetworkTraining(ref NeuralNetwork neuralNetwork, TrainingData trainingData, NetworkTrainingMethod? networkTrainingMethod = null)
         {
             _trainingData = trainingData;
             _neuralNetwork = neuralNetwork;
-            if (networkTrainingMethod != null)
-                _trainingMethod = networkTrainingMethod;
-            else
-                _trainingMethod = NetworkTrainingStrategy.Backpropagation;
+            _neuralNetwork.NeuralNetworkData.TrainingMethod = networkTrainingMethod;
         }
-        public void SetTrainingStrategy(NetworkTrainingMethod trainingMethod)
-        {
-            _trainingMethod = trainingMethod;
-        }
+        public void SetTrainingStrategy(NetworkTrainingMethod trainingMethod) =>
+            _neuralNetwork.NeuralNetworkData.TrainingMethod = trainingMethod;
+        public void SetLearningRate(double learningRate) =>
+            _neuralNetwork.NeuralNetworkData.LearningRate = learningRate;
         public void Train()
         {
-            _trainingMethod.Train(_trainingData,ref _neuralNetwork);
+            _neuralNetwork.NeuralNetworkData.TrainingMethod.Train(_trainingData,ref _neuralNetwork);
         }
     }
 }
