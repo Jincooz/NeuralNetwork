@@ -6,21 +6,15 @@ namespace NeuralNetwork
     public class TrainingData
     {
         private readonly int _inputNodesAmount, _outputNodesAmount;
-        private readonly int _amountOfRecordsInDataset;
         private readonly List<Vector[]> _data;
         private int _amountOfData;
-        private List<List<Vector[]>> _datasets;
-        private int _amountOFDatasets;
-        public int AmountOfRecordsInDataset { get => _amountOfRecordsInDataset; }
-        public List<List<Vector[]>> DataSets { get => _datasets; }
-        public int CountDatasets { get => _amountOFDatasets; }
-        public TrainingData(Matrix trainingData, int groupBy, int inputNodesAmount, int outputNodesAmount)
+        public int AmountOfData { get => _amountOfData; }
+        public List<Vector[]> Data { get => _data; }
+        public TrainingData(Matrix trainingData, int inputNodesAmount, int outputNodesAmount)
         {
-            _amountOfRecordsInDataset = groupBy;
             _inputNodesAmount = inputNodesAmount;
             _outputNodesAmount = outputNodesAmount;
             _amountOfData = 0;
-            _amountOFDatasets = 0;
             _data = new List<Vector[]>();
             AddData(trainingData);
         }
@@ -40,21 +34,6 @@ namespace NeuralNetwork
                 }
                 _data.Add(newRecord);
                 _amountOfData++;
-            }
-            DivideDataInDatasets();
-        }
-        private void DivideDataInDatasets()
-        {
-            _datasets = new List<List<Vector[]>>();
-            for (int i = 0; i < _amountOfData / _amountOfRecordsInDataset; i++)
-            {
-                List<Vector[]> newDataset = new List<Vector[]>();
-                for (int j = 0; j < _amountOfRecordsInDataset; j++)
-                {
-                    newDataset.Add(_data[i * _amountOfRecordsInDataset + j]);
-                }
-                _datasets.Add(newDataset);
-                _amountOFDatasets++;
             }
         }
     }

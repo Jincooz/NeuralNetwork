@@ -49,5 +49,15 @@ namespace NeuralNetwork
             _networkData.OutputLayer = _networkData.Layers[_networkData.Layers.Count - 1];
             return _networkData.OutputLayer;
         }
+        public DataNeuralNetwork GetDataAboutNetwork()
+        {
+            return new DataNeuralNetwork(_networkData.WeightsMatrices, _networkData.Biases, _networkData.Hyperparameters);
+        }
+        public void SetDataAboutNetwork(DataNeuralNetwork dataNeuralNetwork)
+        {
+            _networkData.WeightsMatrices = dataNeuralNetwork.WeightMatrices;
+            _networkData.Biases = dataNeuralNetwork.Biases;
+            _networkData.Hyperparameters = dataNeuralNetwork.Hyperparameters;
+        }
     }
 }
