@@ -17,25 +17,30 @@ namespace NeuralNetwork
     {
         void NetworkTrainingMethod.Train(TrainingData trainingData, ref NeuralNetwork neuralNetwork)
         {
-            for (int i = 0; i < trainingData.CountDatasets; i++)
+            double past_result = 1;
+            int count = 0;
+            List<Matrix> gradientWeights = new List<Matrix>();
+            //same shape as _weightMatrices
+            List<Vector> gradientBiases = new List<Vector>();
+            //same shape as _biases
+            for (int j = 1; j < neuralNetwork.NeuralNetworkData.AmountOfNodes.Count; j++)
             {
-                List<Matrix> gradientWeights = new List<Matrix>();
-                //same shape as _weightMatrices
-                List<Vector> gradientBiases = new List<Vector>();
-                //same shape as _biases
-                for (int j = 1; j < neuralNetwork.NeuralNetworkData.AmountOfNodes.Count; j++)
+                gradientWeights.Add(Matrix.Build.Dense(neuralNetwork.NeuralNetworkData.AmountOfNodes[j], neuralNetwork.NeuralNetworkData.AmountOfNodes[j - 1], 0));
+                gradientBiases.Add(Vector.Build.Dense(neuralNetwork.NeuralNetworkData.AmountOfNodes[j], 0));
+            }
+            while (true)
+            {
+                foreach (Matrix matrix in gradientWeights)
+                    matrix.Multiply(0);
+                foreach (Vector vector in gradientBiases)
+                    vector.Multiply(0);
+                List<Vector[]> dataset = trainingData.Data;
+                for (int i = 0; i < trainingData.AmountOfData; i++)
                 {
-                    gradientWeights.Add(Matrix.Build.Dense(neuralNetwork.NeuralNetworkData.AmountOfNodes[j], neuralNetwork.NeuralNetworkData.AmountOfNodes[j - 1], 0));
-                    gradientBiases.Add(Vector.Build.Dense(neuralNetwork.NeuralNetworkData.AmountOfNodes[j], 0));
-                }
-                List<Vector[]> dataset = trainingData.DataSets[i];
-                for (int j = 0; j < trainingData.AmountOfRecordsInDataset; j++)
-                {
-                    var input = dataset[j][0];
-                    var desireOutput = dataset[j][1];
+                    var input = dataset[i][0];
+                    var desireOutput = dataset[i][1];
                     var networkOutput = neuralNetwork.ActivateNeuralNetwork(input);
                     var diference = 2 * (networkOutput - desireOutput);
-                    //Console.WriteLine();
                     for (int k = gradientWeights.Count - 1; k >= 0; k--)
                     {
                         //double dCdz = 2 * diference * _activationFunction.ActivationFunctionDerivative((_weightMatrices[k] * _layers[k] + _biases[k])[]);
@@ -55,14 +60,38 @@ namespace NeuralNetwork
                         }
                     }
                 }
-                //TODO sum delete
-                double sum = 0;
-                for (int j = 0; j < gradientWeights.Count; j++)
+                for (int i = 0; i < gradientWeights.Count; i++)
                 {
-                    neuralNetwork.NeuralNetworkData.WeightsMatrices[j] -= gradientWeights[j] / trainingData.AmountOfRecordsInDataset;
-                    neuralNetwork.NeuralNetworkData.Biases[j] -= gradientBiases[j] / trainingData.AmountOfRecordsInDataset;
+                    gradientWeights[i] = neuralNetwork.NeuralNetworkData.LearningRate * gradientWeights[i];
+                    gradientBiases[i] = neuralNetwork.NeuralNetworkData.LearningRate * gradientBiases[i];
+                    neuralNetwork.NeuralNetworkData.WeightsMatrices[i] -= gradientWeights[i] / trainingData.AmountOfData;
+                    neuralNetwork.NeuralNetworkData.Biases[i] -= gradientBiases[i] / trainingData.AmountOfData;
+                    
                 }
-                //Console.WriteLine("Gradient: " + sum.ToString());
+                double result = 0;
+                for (int i = 0; i < trainingData.AmountOfData; i++)
+                {
+                    var input = dataset[i][0];
+                    var desireOutput = dataset[i][1];
+                    var networkOutput = neuralNetwork.ActivateNeuralNetwork(input);
+                    var diference = (networkOutput - desireOutput);
+                    diference = diference.PointwisePower(2);
+                    result += diference.Sum();
+                }
+                result /= trainingData.AmountOfData;
+                //if (Math.Abs(result - past_result) < 0.00001)
+                //if(result < 0.15)
+                //    {
+                //        System.Diagnostics.Debug.WriteLine($"Abs now: {past_result} count: {count}");
+                //        return;
+                //    }
+                past_result = result;
+                if(++count > 5000)
+                {
+                    System.Diagnostics.Debug.WriteLine($"!!!Abs now: {past_result} count: {count}");
+                    return;
+                }
+
             }
         }
     }
